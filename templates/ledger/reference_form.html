@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+    <section class="hero hero--compact">
+        <div class="hero__content">
+            <p class="eyebrow">Справочник</p>
+            <h1>{{ page_title }}</h1>
+            <p class="hero__text">{{ page_intro }}</p>
+        </div>
+        <div class="hero__actions">
+            <a class="button button--ghost" href="{{ cancel_url }}">Назад</a>
+        </div>
+    </section>
+
+    <section class="panel panel--form panel--narrow">
+        {% if form.non_field_errors %}
+            <div class="notice notice--danger">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="form-grid">
+            {% csrf_token %}
+            {% for field in form %}
+                {% include 'ledger/_field.html' with field=field %}
+            {% endfor %}
+            <div class="form-actions">
+                <button class="button button--primary" type="submit">{{ submit_label }}</button>
+                <a class="button button--ghost" href="{{ cancel_url }}">Отмена</a>
+            </div>
+        </form>
+    </section>
+{% endblock %}

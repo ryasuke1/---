@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+    <section class="hero hero--compact">
+        <div class="hero__content">
+            <p class="eyebrow">Подтверждение</p>
+            <h1>{{ page_title }}</h1>
+            <p class="hero__text">{{ page_intro }}</p>
+        </div>
+    </section>
+
+    <section class="panel panel--form panel--narrow">
+        <div class="delete-card">
+            <p class="delete-card__label">К удалению</p>
+            <h2>{{ object }}</h2>
+            <p>Если сущность используется в связанных данных, база заблокирует удаление.</p>
+        </div>
+        <form method="post" class="form-actions">
+            {% csrf_token %}
+            <button class="button button--danger" type="submit">Удалить {{ object_label }}</button>
+            <a class="button button--ghost" href="{{ cancel_url }}">Отмена</a>
+        </form>
+    </section>
+{% endblock %}

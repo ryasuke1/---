@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+    <section class="hero hero--compact">
+        <div class="hero__content">
+            <p class="eyebrow">Операция ДДС</p>
+            <h1>{{ page_title }}</h1>
+            <p class="hero__text">{{ page_intro }}</p>
+        </div>
+        <div class="hero__actions">
+            <a class="button button--ghost" href="{{ cancel_url }}">К реестру</a>
+        </div>
+    </section>
+
+    {% if missing_reference_data %}
+        <section class="notice notice--warning">
+            Для корректного ввода сначала создайте: {{ missing_reference_data|join:', ' }}.
+        </section>
+    {% endif %}
+
+    <section class="panel panel--form">
+        {% if form.non_field_errors %}
+            <div class="notice notice--danger">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="form-grid">
+            {% csrf_token %}
+            <div class="form-grid__two">
+                {% include 'ledger/_field.html' with field=form.created_at %}
+                {% include 'ledger/_field.html' with field=form.status %}
+            </div>
+            <div class="form-grid__three">
+                {% include 'ledger/_field.html' with field=form.operation_type %}
+                {% include 'ledger/_field.html' with field=form.category %}
+                {% include 'ledger/_field.html' with field=form.subcategory %}
+            </div>
+            <div class="form-grid__two">
+                {% include 'ledger/_field.html' with field=form.amount %}
+                <div class="form-field form-field--note">
+                    <label>Подсказка</label>
+                    <div class="note-card">
+                        Дата заполняется автоматически, но её можно изменить вручную. Сумма должна быть положительной.
+                    </div>
+                </div>
+            </div>
+            {% include 'ledger/_field.html' with field=form.comment %}
+
+            <div class="form-actions">
+                <button class="button button--primary" type="submit">{{ submit_label }}</button>
+                <a class="button button--ghost" href="{{ cancel_url }}">Отмена</a>
+            </div>
+        </form>
+    </section>
+{% endblock %}
+
+{% block extra_script %}
+    {{ categories_payload|json_script:'categories-data' }}
+    {{ subcategories_payload|json_script:'subcategories-data' }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            window.setupLedgerDependencies({
+                typeSelectId: '{{ form.operation_type.id_for_label }}',
+                categorySelectId: '{{ form.category.id_for_label }}',
+                subcategorySelectId: '{{ form.subcategory.id_for_label }}',
+                categoriesDataId: 'categories-data',
+                subcategoriesDataId: 'subcategories-data',
+                requireCategoryForSubcategory: true,
+                placeholderText: {
+                    category: 'Выберите категорию',
+                    subcategory: 'Выберите подкатегорию'
+                }
+            });
+        });
+    </script>
+{% endblock %}

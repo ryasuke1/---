@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Справочники{% endblock %}
+
+{% block content %}
+    <section class="hero">
+        <div class="hero__content">
+            <p class="eyebrow">Справочники</p>
+            <h1>Управление базовыми сущностями без потери зависимостей</h1>
+            <p class="hero__text">
+                Статусы, типы операций, категории и подкатегории доступны в одном месте и готовы для CRUD-сценариев.
+            </p>
+        </div>
+        <div class="hero__actions hero__actions--stacked">
+            <a class="button button--primary" href="{% url 'ledger:status-create' %}">Добавить статус</a>
+            <a class="button button--secondary" href="{% url 'ledger:category-create' %}">Добавить категорию</a>
+        </div>
+    </section>
+
+    <section class="reference-grid">
+        <article class="panel">
+            <div class="panel__heading panel__heading--row">
+                <div>
+                    <h2>Статусы</h2>
+                    <p>{{ statuses|length }} шт.</p>
+                </div>
+                <a class="text-link" href="{% url 'ledger:status-create' %}">Новый</a>
+            </div>
+            <div class="mini-table">
+                {% for item in statuses %}
+                    <div class="mini-table__row">
+                        <span>{{ item.name }}</span>
+                        <span class="action-set">
+                            <a class="text-link" href="{% url 'ledger:status-update' item.pk %}">Изменить</a>
+                            <a class="text-link text-link--danger" href="{% url 'ledger:status-delete' item.pk %}">Удалить</a>
+                        </span>
+                    </div>
+                {% empty %}
+                    <p class="muted">Пока пусто.</p>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="panel">
+            <div class="panel__heading panel__heading--row">
+                <div>
+                    <h2>Типы операций</h2>
+                    <p>{{ operation_types|length }} шт.</p>
+                </div>
+                <a class="text-link" href="{% url 'ledger:operation-type-create' %}">Новый</a>
+            </div>
+            <div class="mini-table">
+                {% for item in operation_types %}
+                    <div class="mini-table__row">
+                        <span>{{ item.name }}</span>
+                        <span class="action-set">
+                            <a class="text-link" href="{% url 'ledger:operation-type-update' item.pk %}">Изменить</a>
+                            <a class="text-link text-link--danger" href="{% url 'ledger:operation-type-delete' item.pk %}">Удалить</a>
+                        </span>
+                    </div>
+                {% empty %}
+                    <p class="muted">Пока пусто.</p>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="panel panel--span-2">
+            <div class="panel__heading panel__heading--row">
+                <div>
+                    <h2>Категории</h2>
+                    <p>{{ categories|length }} шт.</p>
+                </div>
+                <a class="text-link" href="{% url 'ledger:category-create' %}">Новая категория</a>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Категория</th>
+                            <th>Тип операции</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in categories %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.operation_type.name }}</td>
+                                <td>
+                                    <div class="action-set">
+                                        <a class="text-link" href="{% url 'ledger:category-update' item.pk %}">Изменить</a>
+                                        <a class="text-link text-link--danger" href="{% url 'ledger:category-delete' item.pk %}">Удалить</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="muted">Категорий пока нет.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="panel panel--span-2">
+            <div class="panel__heading panel__heading--row">
+                <div>
+                    <h2>Подкатегории</h2>
+                    <p>{{ subcategories|length }} шт.</p>
+                </div>
+                <a class="text-link" href="{% url 'ledger:subcategory-create' %}">Новая подкатегория</a>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Подкатегория</th>
+                            <th>Категория</th>
+                            <th>Тип операции</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in subcategories %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.category.name }}</td>
+                                <td>{{ item.category.operation_type.name }}</td>
+                                <td>
+                                    <div class="action-set">
+                                        <a class="text-link" href="{% url 'ledger:subcategory-update' item.pk %}">Изменить</a>
+                                        <a class="text-link text-link--danger" href="{% url 'ledger:subcategory-delete' item.pk %}">Удалить</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="muted">Подкатегорий пока нет.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+{% endblock %}

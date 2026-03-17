@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Реестр ДДС{% endblock %}
+
+{% block content %}
+    <section class="hero">
+        <div class="hero__content">
+            <p class="eyebrow">Реестр операций</p>
+            <h1>Движение денежных средств без хаоса в справочниках</h1>
+            <p class="hero__text">
+                Таблица операций, фильтрация по периоду и справочникам, контроль связей между типом,
+                категорией и подкатегорией в одном интерфейсе.
+            </p>
+        </div>
+        <div class="hero__actions">
+            <a class="button button--primary" href="{% url 'ledger:entry-create' %}">Добавить операцию</a>
+            <a class="button button--ghost" href="{% url 'ledger:reference-overview' %}">Открыть справочники</a>
+        </div>
+    </section>
+
+    {% if missing_reference_data %}
+        <section class="notice notice--warning">
+            Для полноценной работы не хватает следующих справочников: {{ missing_reference_data|join:', ' }}.
+            Их можно добавить на странице управления справочниками.
+        </section>
+    {% endif %}
+
+    <section class="stats-grid">
+        <article class="stat-card">
+            <span class="stat-card__label">Операции</span>
+            <strong class="stat-card__value">{{ entries_count }}</strong>
+            <p class="stat-card__hint">Количество записей после применения фильтров.</p>
+        </article>
+        <article class="stat-card">
+            <span class="stat-card__label">Сумма</span>
+            <strong class="stat-card__value">
+                {% if total_amount %}{{ total_amount|floatformat:2 }} ₽{% else %}0.00 ₽{% endif %}
+            </strong>
+            <p class="stat-card__hint">Суммарный объём операций в текущей выборке.</p>
+        </article>
+        <article class="stat-card">
+            <span class="stat-card__label">Категории</span>
+            <strong class="stat-card__value">{{ category_count }}</strong>
+            <p class="stat-card__hint">Поддерживается {{ subcategory_count }} подкатегорий.</p>
+        </article>
+        <article class="stat-card">
+            <span class="stat-card__label">Базовые справочники</span>
+            <strong class="stat-card__value">{{ status_count }} / {{ operation_type_count }}</strong>
+            <p class="stat-card__hint">Статусы и типы операций доступны для формы ввода.</p>
+        </article>
+    </section>
+
+    <section class="content-grid">
+        <aside class="panel panel--sticky">
+            <div class="panel__heading">
+                <h2>Фильтры</h2>
+                <p>Соберите нужный срез данных без перезагрузки справочников.</p>
+            </div>
+            <form method="get" class="stack">
+                {% include 'ledger/_field.html' with field=filter_form.created_from %}
+                {% include 'ledger/_field.html' with field=filter_form.created_to %}
+                {% include 'ledger/_field.html' with field=filter_form.status %}
+                {% include 'ledger/_field.html' with field=filter_form.operation_type %}
+                {% include 'ledger/_field.html' with field=filter_form.category %}
+                {% include 'ledger/_field.html' with field=filter_form.subcategory %}
+                <div class="form-actions">
+                    <button class="button button--primary" type="submit">Применить</button>
+                    <a class="button button--ghost" href="{% url 'ledger:entry-list' %}">Сбросить</a>
+                </div>
+            </form>
+        </aside>
+
+        <section class="panel">
+            <div class="panel__heading panel__heading--row">
+                <div>
+                    <h2>Список операций</h2>
+                    <p>Каждая строка содержит тип, связку категория/подкатегория и комментарий.</p>
+                </div>
+                <a class="button button--secondary" href="{% url 'ledger:entry-create' %}">Новая запись</a>
+            </div>
+
+            {% if entries %}
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Статус</th>
+                                <th>Тип</th>
+                                <th>Категория</th>
+                                <th>Подкатегория</th>
+                                <th>Сумма</th>
+                                <th>Комментарий</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries %}
+                                <tr>
+                                    <td>{{ entry.created_at|date:'d.m.Y' }}</td>
+                                    <td><span class="badge">{{ entry.status.name }}</span></td>
+                                    <td>{{ entry.operation_type.name }}</td>
+                                    <td>{{ entry.category.name }}</td>
+                                    <td>{{ entry.subcategory.name }}</td>
+                                    <td class="amount-cell">{{ entry.amount_rub }} ₽</td>
+                                    <td>{{ entry.comment|default:'-' }}</td>
+                                    <td>
+                                        <div class="action-set">
+                                            <a class="text-link" href="{% url 'ledger:entry-update' entry.pk %}">Изменить</a>
+                                            <a class="text-link text-link--danger" href="{% url 'ledger:entry-delete' entry.pk %}">Удалить</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>Записей пока нет</h3>
+                    <p>Создайте первую операцию или скорректируйте фильтры, если выборка оказалась пустой.</p>
+                    <a class="button button--primary" href="{% url 'ledger:entry-create' %}">Создать запись</a>
+                </div>
+            {% endif %}
+        </section>
+    </section>
+{% endblock %}
+
+{% block extra_script %}
+    {{ categories_payload|json_script:'categories-data' }}
+    {{ subcategories_payload|json_script:'subcategories-data' }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            window.setupLedgerDependencies({
+                typeSelectId: '{{ filter_form.operation_type.id_for_label }}',
+                categorySelectId: '{{ filter_form.category.id_for_label }}',
+                subcategorySelectId: '{{ filter_form.subcategory.id_for_label }}',
+                categoriesDataId: 'categories-data',
+                subcategoriesDataId: 'subcategories-data',
+                requireCategoryForSubcategory: false,
+                placeholderText: {
+                    category: 'Все категории',
+                    subcategory: 'Все подкатегории'
+                }
+            });
+        });
+    </script>
+{% endblock %}

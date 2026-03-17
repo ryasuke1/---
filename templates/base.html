@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Управление ДДС{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'ledger/styles.css' %}">
+    <script src="{% static 'ledger/dependencies.js' %}" defer></script>
+</head>
+<body>
+    <div class="site-shell">
+        <header class="masthead">
+            <a class="brand" href="{% url 'ledger:entry-list' %}">
+                <span class="brand__eyebrow">DDS</span>
+                <span class="brand__title">Cashflow Console</span>
+            </a>
+            <nav class="nav-pills">
+                <a class="nav-pill" href="{% url 'ledger:entry-list' %}">Реестр</a>
+                <a class="nav-pill" href="{% url 'ledger:entry-create' %}">Новая запись</a>
+                <a class="nav-pill" href="{% url 'ledger:reference-overview' %}">Справочники</a>
+                <a class="nav-pill" href="/admin/">Admin</a>
+            </nav>
+        </header>
+
+        {% if messages %}
+            <section class="flash-stack">
+                {% for message in messages %}
+                    <div class="flash flash--{{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% block extra_script %}{% endblock %}
+</body>
+</html>
